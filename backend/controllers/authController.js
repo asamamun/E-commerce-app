@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const asyncHandler = require('../middleware/asyncHandler');
 
 // Generate JWT
@@ -78,5 +79,67 @@ exports.getProfile = asyncHandler(async (req, res, next) => {
     name: user.name,
     email: user.email,
     role: user.role,
+  });
+});
+
+// @desc    Forgot password
+// @route   POST /api/auth/forgotpassword
+// @access  Public
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+  // Check for user email
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Generate reset token
+  const resetToken = user.getResetPasswordToken();
+  
+  await user.save({ validateBeforeSave: false });
+
+  // Create reset url
+  const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/resetpassword/${resetToken}`;
+
+  res.status(200).json({
+    success: true,
+    data: 'Reset token sent to email',
+    resetUrl // In production, you would send this via email
+  });
+});
+
+// @desc    Reset password
+// @route   PUT /api/auth/resetpassword/:resettoken
+// @access  Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // Get hashed token
+  const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(req.params.resettoken)
+    .digest('hex');
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error('Invalid token');
+  }
+
+  // Set new password
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    data: 'Password updated successfully',
   });
 });

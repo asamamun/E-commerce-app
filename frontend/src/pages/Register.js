@@ -21,14 +21,16 @@ const Register = () => {
 
   useEffect(() => {
     if (isError) {
-      console.log(message);
+      console.error('Registration error:', message);
     }
 
     if (isSuccess || user) {
       navigate('/');
     }
 
-    dispatch(reset());
+    return () => {
+      dispatch(reset());
+    };
   }, [user, isError, isSuccess, message, navigate, dispatch]);
 
   const onChange = (e) => {
@@ -66,6 +68,34 @@ const Register = () => {
             Create your account
           </h2>
         </div>
+        
+        {isError && (
+          <div className="rounded-md bg-red-50 p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Registration failed
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{message}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {password !== password2 && password2 && (
+          <div className="rounded-md bg-yellow-50 p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  Passwords do not match
+                </h3>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <form className="mt-8 space-y-6" onSubmit={onSubmit}>
           <input type="hidden" name="remember" value="true" />
           <div className="rounded-md shadow-sm -space-y-px">

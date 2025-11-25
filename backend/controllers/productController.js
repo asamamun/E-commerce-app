@@ -5,7 +5,23 @@ const asyncHandler = require('../middleware/asyncHandler');
 // @route   GET /api/products
 // @access  Public
 exports.getProducts = asyncHandler(async (req, res, next) => {
-  const products = await Product.find({ isActive: true });
+  const { q } = req.query; // Search query
+  
+  let query = { isActive: true };
+  
+  // Add search functionality
+  if (q) {
+    query = {
+      ...query,
+      $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { category: { $regex: q, $options: 'i' } }
+      ]
+    };
+  }
+  
+  const products = await Product.find(query);
 
   res.status(200).json({
     success: true,

@@ -30,6 +30,10 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Please add stock quantity'],
     default: 0
   },
+  sold: {
+    type: Number,
+    default: 0
+  },
   imageUrl: {
     type: String,
     required: [true, 'Please add an image URL']
