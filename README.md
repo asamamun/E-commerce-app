@@ -61,27 +61,26 @@ npm install
 
 4. Configure environment variables
 
-Create a `.env` file in the `backend` directory:
-```env
-NODE_ENV=development
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-JWT_EXPIRE=30d
-
-# Email configuration (optional)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_EMAIL=your_email@gmail.com
-SMTP_PASSWORD=your_email_password
-FROM_EMAIL=noreply@ecommerce.com
-FROM_NAME=E-commerce App
-
-# Cloudinary (optional, for image uploads)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+Copy the example environment file and update with your values:
+```bash
+cd backend
+cp .env.example .env
 ```
+
+Then edit `backend/.env` with your actual configuration:
+```env
+MONGO_URI=mongodb://localhost:27017/ecommerce  # or your MongoDB Atlas URI
+JWT_SECRET=your_jwt_secret_key_here_change_in_production
+JWT_EXPIRE=30d
+PORT=5000
+NODE_ENV=development
+
+# Stripe Keys (if using Stripe for payments)
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
+```
+
+**Important:** Never commit your `.env` file to git. It contains sensitive credentials.
 
 ### Seed Database with Sample Data
 

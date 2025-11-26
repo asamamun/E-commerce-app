@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getWishlist, removeFromWishlist } from '../features/wishlistSlice';
+import { toast } from 'react-toastify';
+import { getWishlist, removeFromWishlist, reset } from '../features/wishlistSlice';
 import { addToCart } from '../features/cartSlice';
 
 const Wishlist = () => {
@@ -9,15 +10,24 @@ const Wishlist = () => {
   const { wishlist, isLoading, isError, message } = useSelector((state) => state.wishlist);
 
   useEffect(() => {
+    dispatch(reset());
     dispatch(getWishlist());
   }, [dispatch]);
 
   const handleRemoveFromWishlist = (productId) => {
     dispatch(removeFromWishlist(productId));
+    toast.success('Item removed from wishlist!', {
+      position: "top-right",
+      autoClose: 2000,
+    });
   };
 
   const handleAddToCart = (product) => {
     dispatch(addToCart(product));
+    toast.success(`${product.name} added to cart!`, {
+      position: "top-right",
+      autoClose: 2000,
+    });
   };
 
   if (isLoading) {

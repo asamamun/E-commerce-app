@@ -16,8 +16,13 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(helmet());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

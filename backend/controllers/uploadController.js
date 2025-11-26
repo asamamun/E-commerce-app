@@ -64,7 +64,7 @@ exports.uploadImage = asyncHandler(async (req, res, next) => {
     data: {
       fileName: processedFileName,
       filePath: `/uploads/${processedFileName}`,
-      url: `${req.protocol}://${req.get('host')}/uploads/${processedFileName}`
+      url: `/uploads/${processedFileName}` // Use relative URL for frontend proxy
     }
   });
 });

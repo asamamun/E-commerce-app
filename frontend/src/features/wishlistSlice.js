@@ -78,10 +78,14 @@ const wishlistSlice = createSlice({
     builder
       .addCase(getWishlist.pending, (state) => {
         state.isLoading = true;
+        state.isError = false;
+        state.message = '';
       })
       .addCase(getWishlist.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
+        state.isError = false;
+        state.message = '';
         state.wishlist = action.payload.items || [];
       })
       .addCase(getWishlist.rejected, (state, action) => {

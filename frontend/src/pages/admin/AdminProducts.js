@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../../features/productSlice';
+import { getCategories } from '../../features/categorySlice';
 import UploadService from '../../services/uploadService';
 
 const AdminProducts = () => {
   const dispatch = useDispatch();
   const { products, isLoading, isError, message } = useSelector((state) => state.product);
+  const { categories } = useSelector((state) => state.category);
   
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -22,6 +24,7 @@ const AdminProducts = () => {
 
   useEffect(() => {
     dispatch(getProducts());
+    dispatch(getCategories());
   }, [dispatch]);
 
   const handleInputChange = (e) => {
@@ -40,9 +43,10 @@ const AdminProducts = () => {
     
     try {
       const response = await UploadService.uploadImage(imageFile);
-      return response.data.url;
+      return response.data.data.url;
     } catch (error) {
       console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
       return '';
     }
   };
@@ -54,6 +58,15 @@ const AdminProducts = () => {
     let imageUrl = formData.imageUrl;
     if (imageFile) {
       imageUrl = await handleImageUpload();
+      if (!imageUrl) {
+        return; // Stop submission if image upload failed
+      }
+    }
+    
+    // Validate that we have an image URL
+    if (!imageUrl) {
+      alert('Please provide an image URL or upload an image file');
+      return;
     }
     
     const productData = { ...formData, imageUrl };
@@ -165,14 +178,20 @@ const AdminProducts = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <input
-                    type="text"
+                  <select
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     required
-                  />
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>

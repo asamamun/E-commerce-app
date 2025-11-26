@@ -2,8 +2,12 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../services/api';
 import UserService from '../services/userService';
 
+const userFromStorage = localStorage.getItem('user')
+  ? JSON.parse(localStorage.getItem('user'))
+  : null;
+
 const initialState = {
-  user: null,
+  user: userFromStorage,
   users: [],
   token: localStorage.getItem('token'),
   isLoading: false,
@@ -20,6 +24,7 @@ export const register = createAsyncThunk(
       const response = await api.post('/auth/register', userData);
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data));
       }
       return response.data;
     } catch (error) {
@@ -42,6 +47,7 @@ export const login = createAsyncThunk(
       const response = await api.post('/auth/login', userData);
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data));
       }
       return response.data;
     } catch (error) {
@@ -59,6 +65,7 @@ export const login = createAsyncThunk(
 // Logout user
 export const logout = createAsyncThunk('auth/logout', async () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('user');
 });
 
 // Update profile
