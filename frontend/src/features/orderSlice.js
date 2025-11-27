@@ -100,6 +100,24 @@ export const updateOrderToDelivered = createAsyncThunk(
   }
 );
 
+// Update order status (admin)
+export const updateOrderStatus = createAsyncThunk(
+  'orders/updateStatus',
+  async ({ orderId, status }, thunkAPI) => {
+    try {
+      const response = await OrderService.updateOrderStatus(orderId, status);
+      return response.data.data;
+    } catch (error) {
+      const message =
+        (error.response && error.response.data && error.response.data.error) ||
+        (error.response && error.response.data && error.response.data.message) ||
+        error.message ||
+        error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
 const orderSlice = createSlice({
   name: 'order',
   initialState,
@@ -180,6 +198,25 @@ const orderSlice = createSlice({
         }
       })
       .addCase(updateOrderToDelivered.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(updateOrderStatus.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.orders = state.orders.map(order =>
+          order._id === action.payload._id ? action.payload : order
+        );
+        // Also update the single order if it's in state
+        if (state.order._id === action.payload._id) {
+          state.order = action.payload;
+        }
+      })
+      .addCase(updateOrderStatus.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload;

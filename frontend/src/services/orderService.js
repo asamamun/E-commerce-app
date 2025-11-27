@@ -31,6 +31,12 @@ class OrderService {
     return response;
   }
 
+  // Update order status
+  static async updateOrderStatus(orderId, status) {
+    const response = await api.put(`/orders/${orderId}/status`, { status });
+    return response;
+  }
+
   // Get all orders (admin)
   static async getOrders() {
     const response = await api.get('/orders');

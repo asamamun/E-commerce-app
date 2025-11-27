@@ -10,7 +10,12 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, totalAmount } = useSelector((state) => state.cart);
   
-  const [paymentMethod] = useState('paypal');
+  // Ensure cartItems is always an array
+  const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
+  
+  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [trxId, setTrxId] = useState('');
+  const [orderComment, setOrderComment] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -28,9 +33,24 @@ const Checkout = () => {
         country: formData.get('country'),
       };
       
+      // Validate required fields
+      if (!shippingAddress.address || !shippingAddress.city || 
+          !shippingAddress.postalCode || !shippingAddress.country) {
+        alert('Please fill in all shipping address fields');
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Validate transaction ID for non-COD payments
+      if (paymentMethod !== 'COD' && !trxId.trim()) {
+        alert('Transaction ID is required for ' + paymentMethod + ' payments');
+        setIsProcessing(false);
+        return;
+      }
+      
       // Create order data
       const orderData = {
-        orderItems: cartItems.map(item => ({
+        orderItems: safeCartItems.map(item => ({
           product: item._id,
           quantity: item.quantity,
           price: item.price,
@@ -41,19 +61,30 @@ const Checkout = () => {
         taxPrice: 0,
         shippingPrice: 0,
         totalPrice: totalAmount,
+        orderComment: orderComment.trim(),
       };
+      
+      // Add transaction ID for non-COD payments
+      if (paymentMethod !== 'COD') {
+        orderData.transactionId = trxId.trim();
+      }
       
       // Dispatch create order action
       const result = await dispatch(createOrder(orderData)).unwrap();
       
-      // Process payment
-      const paymentData = {
-        orderId: result._id,
-        paymentMethod,
-        // In a real application, you would include actual payment details
-      };
-      
-      await PaymentService.processPayment(paymentData);
+      // Process payment (for demo purposes, we'll just show a success message)
+      // In a real application, you would integrate with actual payment gateways
+      if (paymentMethod === 'COD') {
+        // For COD, no immediate payment processing needed
+        console.log('Cash on Delivery order placed');
+      } else {
+        // For other payment methods, simulate processing
+        await PaymentService.processPayment({
+          orderId: result._id,
+          paymentMethod,
+          transactionId: trxId.trim()
+        });
+      }
       
       // Clear cart
       dispatch(clearCart());
@@ -73,7 +104,7 @@ const Checkout = () => {
       <div className="px-4 py-6 sm:px-0">
         <h1 className="text-3xl font-bold mb-6">Checkout</h1>
         
-        {cartItems.length === 0 ? (
+        {safeCartItems.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-xl mb-4">Your cart is empty</p>
             <Link 
@@ -93,6 +124,7 @@ const Checkout = () => {
                   <label className="block text-sm font-medium text-gray-700">Full Name</label>
                   <input
                     type="text"
+                    name="fullName"
                     required
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   />
@@ -102,6 +134,7 @@ const Checkout = () => {
                   <label className="block text-sm font-medium text-gray-700">Email</label>
                   <input
                     type="email"
+                    name="email"
                     required
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   />
@@ -111,6 +144,7 @@ const Checkout = () => {
                   <label className="block text-sm font-medium text-gray-700">Address</label>
                   <input
                     type="text"
+                    name="address"
                     required
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   />
@@ -121,6 +155,7 @@ const Checkout = () => {
                     <label className="block text-sm font-medium text-gray-700">City</label>
                     <input
                       type="text"
+                      name="city"
                       required
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     />
@@ -130,6 +165,7 @@ const Checkout = () => {
                     <label className="block text-sm font-medium text-gray-700">Postal Code</label>
                     <input
                       type="text"
+                      name="postalCode"
                       required
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                     />
@@ -140,7 +176,87 @@ const Checkout = () => {
                   <label className="block text-sm font-medium text-gray-700">Country</label>
                   <input
                     type="text"
+                    name="country"
                     required
+                    defaultValue="Bangladesh"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  />
+                </div>
+                
+                {/* Payment Method Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="COD"
+                        checked={paymentMethod === 'COD'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-2"
+                      />
+                      Cash on Delivery (COD)
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="bKash"
+                        checked={paymentMethod === 'bKash'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-2"
+                      />
+                      bKash
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="Nagad"
+                        checked={paymentMethod === 'Nagad'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-2"
+                      />
+                      Nagad
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="Rocket"
+                        checked={paymentMethod === 'Rocket'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-2"
+                      />
+                      Rocket
+                    </label>
+                  </div>
+                </div>
+                
+                {/* Transaction ID for non-COD payments */}
+                {paymentMethod !== 'COD' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Transaction ID</label>
+                    <input
+                      type="text"
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value)}
+                      required={paymentMethod !== 'COD'}
+                      placeholder="Enter transaction ID"
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    />
+                  </div>
+                )}
+                
+                {/* Order Comment */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Order Instructions (Optional)</label>
+                  <textarea
+                    value={orderComment}
+                    onChange={(e) => setOrderComment(e.target.value)}
+                    placeholder="Any special instructions for your order..."
+                    rows="3"
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   />
                 </div>
@@ -160,7 +276,7 @@ const Checkout = () => {
               <h2 className="text-xl font-bold mb-4">Order Summary</h2>
               <div className="border rounded-lg p-4">
                 <div className="space-y-3 mb-4">
-                  {cartItems.map((item) => (
+                  {safeCartItems.map((item) => (
                     <div key={item._id} className="flex justify-between">
                       <div>
                         <span>{item.name} x {item.quantity}</span>
@@ -186,6 +302,23 @@ const Checkout = () => {
                     <span>${totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
+                
+                {/* Payment Method Display */}
+                <div className="border-t pt-4 mt-4">
+                  <h3 className="font-medium mb-2">Payment Method</h3>
+                  <p className="text-gray-700">{paymentMethod}</p>
+                  {paymentMethod !== 'COD' && trxId && (
+                    <p className="text-gray-700">Transaction ID: {trxId}</p>
+                  )}
+                </div>
+                
+                {/* Order Comment Display */}
+                {orderComment && (
+                  <div className="border-t pt-4 mt-4">
+                    <h3 className="font-medium mb-2">Order Instructions</h3>
+                    <p className="text-gray-700">{orderComment}</p>
+                  </div>
+                )}
               </div>
               
               <Link 

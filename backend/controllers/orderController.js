@@ -14,6 +14,8 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
     taxPrice,
     shippingPrice,
     totalPrice,
+    transactionId,
+    orderComment
   } = req.body;
 
   if (orderItems && orderItems.length === 0) {
@@ -29,6 +31,8 @@ exports.createOrder = asyncHandler(async (req, res, next) => {
       taxPrice,
       shippingPrice,
       totalPrice,
+      transactionId,
+      orderComment
     });
 
     const createdOrder = await order.save();
@@ -82,7 +86,7 @@ exports.updateOrderToPaid = asyncHandler(async (req, res, next) => {
     for (const item of order.orderItems) {
       const product = await Product.findById(item.product);
       if (product) {
-        product.sold += item.qty;
+        product.sold += item.quantity; // Fixed: was item.qty
         await product.save();
       }
     }
@@ -106,6 +110,48 @@ exports.updateOrderToDelivered = asyncHandler(async (req, res, next) => {
   if (order) {
     order.isDelivered = true;
     order.deliveredAt = Date.now();
+
+    const updatedOrder = await order.save();
+
+    res.json({
+      success: true,
+      data: updatedOrder,
+    });
+  } else {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+});
+
+// @desc    Update order status
+// @route   PUT /api/orders/:id/status
+// @access  Private/Admin
+exports.updateOrderStatus = asyncHandler(async (req, res, next) => {
+  const { status } = req.body;
+  const order = await Order.findById(req.params.id);
+
+  if (order) {
+    // Validate status
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      res.status(400);
+      throw new Error('Invalid status');
+    }
+
+    // Update status
+    order.orderStatus = status;
+    
+    // Add to status history
+    order.statusHistory.push({
+      status: status,
+      updatedBy: req.user.name || req.user.email
+    });
+
+    // Update delivered status if needed
+    if (status === 'delivered') {
+      order.isDelivered = true;
+      order.deliveredAt = Date.now();
+    }
 
     const updatedOrder = await order.save();
 

@@ -5,6 +5,7 @@ const {
   getOrderById,
   updateOrderToPaid,
   updateOrderToDelivered,
+  updateOrderStatus,
   getMyOrders,
   getOrders,
 } = require('../controllers/orderController');
@@ -26,5 +27,8 @@ router.route('/:id/pay')
 
 router.route('/:id/deliver')
   .put(protect, authorize('admin'), updateOrderToDelivered);
+
+router.route('/:id/status')
+  .put(protect, authorize('admin'), updateOrderStatus);
 
 module.exports = router;

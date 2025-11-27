@@ -36,6 +36,22 @@ const OrderConfirmation = () => {
                 <span className="font-medium">${order.totalPrice?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-gray-600">Payment Method:</span>
+                <span className="font-medium">{order.paymentMethod}</span>
+              </div>
+              {order.transactionId && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Transaction ID:</span>
+                  <span className="font-medium">{order.transactionId}</span>
+                </div>
+              )}
+              {order.orderComment && (
+                <div className="flex flex-col">
+                  <span className="text-gray-600">Order Instructions:</span>
+                  <span className="font-medium">{order.orderComment}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
                 <span className="text-gray-600">Status:</span>
                 <span className="font-medium text-green-600">Processing</span>
               </div>

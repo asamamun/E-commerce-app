@@ -6,6 +6,9 @@ import { removeFromCart, increaseQuantity, decreaseQuantity } from '../features/
 const Cart = () => {
   const dispatch = useDispatch();
   const { cartItems, totalAmount, totalQuantity } = useSelector((state) => state.cart);
+  
+  // Ensure cartItems is always an array
+  const safeCartItems = Array.isArray(cartItems) ? cartItems : [];
 
   const handleRemoveFromCart = (id) => {
     dispatch(removeFromCart(id));
@@ -24,7 +27,7 @@ const Cart = () => {
       <div className="px-4 py-6 sm:px-0">
         <h1 className="text-3xl font-bold mb-6">Shopping Cart</h1>
         
-        {cartItems.length === 0 ? (
+        {safeCartItems.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-xl mb-4">Your cart is empty</p>
             <Link 
@@ -37,7 +40,7 @@ const Cart = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
-              {cartItems.map((item) => (
+              {safeCartItems.map((item) => (
                 <div key={item._id} className="border rounded-lg p-4 mb-4 flex">
                   <div className="flex-shrink-0 w-24 h-24 bg-gray-200 rounded-md overflow-hidden">
                     <img 

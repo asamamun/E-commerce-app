@@ -12,6 +12,8 @@ import Products from './pages/Products';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
+import OrderDetails from './pages/OrderDetails';
+import PrintInvoice from './pages/PrintInvoice';
 import Category from './pages/Category';
 import ProductDetail from './pages/ProductDetail';
 import Search from './pages/Search';
@@ -51,6 +53,8 @@ function App() {
             <Route path="cart" element={<Cart />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="order-confirmation" element={<OrderConfirmation />} />
+            <Route path="orders/:id" element={<OrderDetails />} />
+            <Route path="print-invoice/:id" element={<PrintInvoice />} />
             <Route path="categories/:id" element={<Category />} />
             <Route path="products/:id" element={<ProductDetail />} />
             <Route path="search" element={<Search />} />

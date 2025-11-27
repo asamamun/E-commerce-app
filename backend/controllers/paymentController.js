@@ -5,7 +5,7 @@ const Order = require('../models/Order');
 // @route   POST /api/payment/process
 // @access  Private
 exports.processPayment = asyncHandler(async (req, res, next) => {
-  const { orderId, paymentMethod, paymentData } = req.body;
+  const { orderId, paymentMethod, transactionId, paymentData } = req.body;
 
   // In a real application, you would integrate with a payment gateway like SSLCommerz
   // For now, we'll simulate a successful payment
@@ -27,7 +27,7 @@ exports.processPayment = asyncHandler(async (req, res, next) => {
   // Simulate payment processing
   // In a real application, you would call the payment gateway API here
   const paymentResult = {
-    id: `payment_${Date.now()}`,
+    id: transactionId || `payment_${Date.now()}`,
     status: 'completed',
     update_time: new Date().toISOString(),
     email_address: req.user.email,

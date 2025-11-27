@@ -11,8 +11,15 @@ const loadCartFromLocalStorage = () => {
         totalAmount: 0,
       };
     }
-    return JSON.parse(serializedCart);
+    const parsedCart = JSON.parse(serializedCart);
+    // Ensure cartItems is always an array
+    return {
+      cartItems: Array.isArray(parsedCart.cartItems) ? parsedCart.cartItems : [],
+      totalQuantity: parsedCart.totalQuantity || 0,
+      totalAmount: parsedCart.totalAmount || 0,
+    };
   } catch (err) {
+    // Return default state if there's an error parsing
     return {
       cartItems: [],
       totalQuantity: 0,
@@ -53,14 +60,17 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action) => {
       const item = action.payload;
-      const existingItem = state.cartItems.find((i) => i._id === item._id);
+      // Ensure cartItems is an array before calling find
+      const cartItems = Array.isArray(state.cartItems) ? state.cartItems : [];
+      const existingItem = cartItems.find((i) => i._id === item._id);
       
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
-        state.cartItems.push({ ...item, quantity: 1 });
+        cartItems.push({ ...item, quantity: 1 });
       }
       
+      state.cartItems = cartItems;
       state.totalQuantity += 1;
       state.totalAmount += item.price;
       
@@ -68,19 +78,23 @@ const cartSlice = createSlice({
     },
     removeFromCart: (state, action) => {
       const itemId = action.payload;
-      const existingItem = state.cartItems.find((i) => i._id === itemId);
+      // Ensure cartItems is an array before calling find
+      const cartItems = Array.isArray(state.cartItems) ? state.cartItems : [];
+      const existingItem = cartItems.find((i) => i._id === itemId);
       
       if (existingItem) {
         state.totalQuantity -= existingItem.quantity;
         state.totalAmount -= existingItem.price * existingItem.quantity;
-        state.cartItems = state.cartItems.filter((i) => i._id !== itemId);
+        state.cartItems = cartItems.filter((i) => i._id !== itemId);
       }
       
       saveCartToLocalStorage(state.cartItems, state.totalQuantity, state.totalAmount);
     },
     increaseQuantity: (state, action) => {
       const itemId = action.payload;
-      const existingItem = state.cartItems.find((i) => i._id === itemId);
+      // Ensure cartItems is an array before calling find
+      const cartItems = Array.isArray(state.cartItems) ? state.cartItems : [];
+      const existingItem = cartItems.find((i) => i._id === itemId);
       
       if (existingItem) {
         existingItem.quantity += 1;
@@ -92,7 +106,9 @@ const cartSlice = createSlice({
     },
     decreaseQuantity: (state, action) => {
       const itemId = action.payload;
-      const existingItem = state.cartItems.find((i) => i._id === itemId);
+      // Ensure cartItems is an array before calling find
+      const cartItems = Array.isArray(state.cartItems) ? state.cartItems : [];
+      const existingItem = cartItems.find((i) => i._id === itemId);
       
       if (existingItem && existingItem.quantity > 1) {
         existingItem.quantity -= 1;

@@ -75,6 +75,32 @@ const orderSchema = new mongoose.Schema({
   deliveredAt: {
     type: Date
   },
+  // New fields for transaction ID and order comment
+  transactionId: {
+    type: String
+  },
+  orderComment: {
+    type: String
+  },
+  // Order status field
+  orderStatus: {
+    type: String,
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'],
+    default: 'pending'
+  },
+  statusHistory: [{
+    status: {
+      type: String,
+      enum: ['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled']
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    updatedBy: {
+      type: String
+    }
+  }],
   createdAt: {
     type: Date,
     default: Date.now

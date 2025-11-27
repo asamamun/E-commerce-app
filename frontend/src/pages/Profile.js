@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { getMyOrders } from '../features/orderSlice';
 import { updateProfile } from '../features/authSlice';
 
@@ -47,6 +47,23 @@ const Profile = () => {
       name: user.name,
       email: user.email
     });
+  };
+
+  const getStatusBadge = (status) => {
+    const statusClasses = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      processing: 'bg-blue-100 text-blue-800',
+      shipped: 'bg-purple-100 text-purple-800',
+      delivered: 'bg-green-100 text-green-800',
+      completed: 'bg-indigo-100 text-indigo-800',
+      cancelled: 'bg-red-100 text-red-800'
+    };
+    
+    return (
+      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClasses[status] || 'bg-gray-100 text-gray-800'}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
   };
 
   if (!user) {
@@ -142,6 +159,32 @@ const Profile = () => {
                     <div className="flex justify-between text-sm text-gray-500 mt-2">
                       <span>{new Date(order.createdAt).toLocaleDateString()}</span>
                       <span className="capitalize">{order.isPaid ? 'Paid' : 'Pending'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-500 mt-1">
+                      <span>Payment: {order.paymentMethod}</span>
+                      <span>
+                        {getStatusBadge(order.orderStatus || 'pending')}
+                      </span>
+                    </div>
+                    {order.transactionId && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        TX: {order.transactionId}
+                      </div>
+                    )}
+                    <div className="mt-2 flex space-x-2">
+                      <Link 
+                        to={`/orders/${order._id}`} 
+                        className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                      >
+                        View Details
+                      </Link>
+                      <Link 
+                        to={`/print-invoice/${order._id}`} 
+                        target="_blank"
+                        className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+                      >
+                        Print Invoice
+                      </Link>
                     </div>
                   </div>
                 ))}
